@@ -38,22 +38,13 @@ Features
 
 
  Setup Instructions
+1. Choosing a Programming Language:
 
-1. Clone the Repository:
-
-  
-  git clone https://github.com/prem5599/REST-Countries
+    - This project primarily uses HTML, CSS, and JavaScript for its functionality and design.
  
-  
+2. Installing an IDE (Integrated Development Environment):
 
-2. Open the Application:
-
-   - Use any live server extension (e.g., Live Server for VS Code) to serve the project.
-   - Alternatively, open `index.html` directly in your browser.
-
-3. Access Country Details:
-
-   - Click on a country from the grid view to navigate to its details page.
+    - Download and set up a code editor like Visual Studio Code or Sublime Text, which provides features like syntax highlighting and debugging tools.
 
 
  Design Decisions and Animations
@@ -97,24 +88,27 @@ details.js              # JavaScript for details.html functionality
 
 Testing and Running the App
 
-1. Manual Testing:
+Manual Testing:
 
-   - Verify the app functionality by interacting with the search, filter, favorites, and pagination features.
-   - Navigate to the country details page and validate the displayed information.
+ - Verify the app functionality by interacting with the search, filter, favorites, and pagination features.
 
-2. Browser Compatibility:
+ - Navigate to the country details page and validate the displayed information.
 
-   - Tested on:
-     - Chrome
-     - Firefox
-     - Safari
-     - Edge
+Browser Compatibility:
 
-3. Responsiveness:
+Tested on:
 
-   - Verified across various screen sizes, including desktops, tablets, and mobile devices.
+ - Chrome
 
+ - Firefox
 
+ - Safari
+
+ - Edge
+
+Responsiveness:
+
+ - Verified across various screen sizes, including desktops, tablets, and mobile devices.
 
  Quality and Testing Expectations
 
@@ -166,7 +160,6 @@ Future Improvements
 2. Improve error handling with user-friendly messages.
 3. Implement additional filters (e.g., by currency or subregion).
 4. Enhance the UI with more animations and transitions, such as:
-   - Animated transitions when switching between pages.
    - Interactive feedback for user actions, such as saving favorites or applying filters.
 
 
