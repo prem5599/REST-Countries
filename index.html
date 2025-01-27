@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countries Explorer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- NAv bar -->
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">Countries Explorer</a>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+            </div>
+        </div>
+    </nav>
+    <!-- country details search -->
+    <div class="app-container">
+        <main class="main-content">
+            
+            <div class="search-container">
+                <h1>Explore countries like never before</h1>
+                <p>Search for any country to uncover its culture, demographics, and more. Whether you're planning a trip, learning about the world, or just curious, Country Explorer has you covered.</p>
+
+                <input type="text" class="search-input" id="searchInput" placeholder="Search countries...">
+                <div id="searchSuggestions" class="search-suggestions"></div>
+                <div class="filters">
+                    <select id="regionFilter" class="filter-select">
+                        <option value="">All Regions</option>
+                    </select>
+                    <select id="languageFilter" class="filter-select">
+                        <option value="">All Languages</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="countriesGrid" class="countries-grid"></div>
+            <button id="showMore" class="show-more-button">Show More</button>
+        </main>
+        <!-- favorite side bar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 class="favorites-title">Favorite Countries</h2>
+                <p class="favorites-subtitle">Your saved countries</p>
+            </div>
+            <div class="favorites-list" id="favoritesList">
+                <div class="no-favorites">
+                    <p>No favorite countries yet</p>
+                    <p>Click the star icon to add countries to your favorites</p>
+                </div>
+            </div>
+        </aside>
+    </div>  
+    <script src="script.js"></script>
+</body>
+</html>

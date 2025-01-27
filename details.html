@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Details</title>
+    <link rel="stylesheet" href="details.css">
+    <style>
+        
+    </style>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">Countries Explorer</a>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+            </div>
+        </div>
+    </nav>
+    <div class="details-container">
+        <a href="index.html" class="back-link">← Back to Search</a>
+        <div id="countryDetails">
+            <div class="flag-section">
+                <img id="countryFlag" src="" alt="Country Flag" class="country-flag-large">
+            </div>
+            <div class="details-content">
+                <div class="detailhead">
+                <h2 id="countryName">  </h2>
+                <button id="favoriteButton" class="favorite-button">☆</button>
+            </div>
+                
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Top Level Domain</span>
+                        <span class="detail-value" id="tld"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Capital</span>
+                        <span class="detail-value" id="capital"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Region</span>
+                        <span class="detail-value" id="region"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Population</span>
+                        <span class="detail-value" id="population"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Area</span>
+                        <span class="detail-value" id="area"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Languages</span>
+                        <span class="detail-value" id="languages"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="details.js"></script>
+</body>
+</html>
