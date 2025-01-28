@@ -11,7 +11,7 @@ Visual studio code
  
 2. In the terminal, run the following command to clone the repository:  
     
-   git clone https://github.com/your-username/countries-explorer.git  
+   git clone https://github.com/prem5599/REST-Countries.git 
  
 3. Navigate to the project directory by running:  
      
