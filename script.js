@@ -1,6 +1,7 @@
 // API base URL and constants
 const baseUrl = 'https://restcountries.com/v3.1';
 const FAVORITES_KEY = 'favoriteCountries';
+const SEARCH_STATE_KEY = 'searchState';
 
 // State management
 let countries = [];
@@ -9,6 +10,11 @@ let debounceTimer;
 let currentPage = 1;
 const pageSize = 12;
 let currentFilter = null;
+let searchState = {
+    searchQuery: '',
+    regionFilter: '',
+    languageFilter: ''
+};
 
 // DOM Elements
 const elements = {
@@ -21,25 +27,50 @@ const elements = {
     showMore: document.getElementById('showMore')
 };
 
+// Save and restore search state
+const saveSearchState = () => {
+    searchState = {
+        searchQuery: elements.searchInput.value,
+        regionFilter: elements.regionFilter.value,
+        languageFilter: elements.languageFilter.value
+    };
+    localStorage.setItem(SEARCH_STATE_KEY, JSON.stringify(searchState));
+};
+
+const restoreSearchState = () => {
+    const savedState = localStorage.getItem(SEARCH_STATE_KEY);
+    if (savedState) {
+        searchState = JSON.parse(savedState);
+        elements.searchInput.value = searchState.searchQuery;
+        elements.regionFilter.value = searchState.regionFilter;
+        elements.languageFilter.value = searchState.languageFilter;
+        
+        // Apply saved filters
+        if (searchState.searchQuery || searchState.regionFilter || searchState.languageFilter) {
+            currentPage = 1;
+            renderCountries(getPaginatedCountries());
+        }
+    }
+};
+
 // Fetch countries data
 const fetchCountries = async () => {
     try {
         elements.countriesGrid.innerHTML = '<div class="loading">Loading countries...</div>';
         const response = await fetch(`${baseUrl}/all`);
-        console.log('Direct API test:', response.status);
         
         if (!response.ok) throw new Error('Failed to fetch countries');
         
         const data = await response.json();
-        console.log('Countries loaded:', data.length);
         countries = data;
         
         renderCountries(getPaginatedCountries());
         populateLanguageFilter();
         populateRegionFilter();
         updateFavoritesList();
+        restoreSearchState();
     } catch (error) {
-        console.log('Direct API error:', error);
+        console.error('Error:', error);
         elements.countriesGrid.innerHTML = `
             <div class="error-message">
                 <p>Failed to load countries. Please try again.</p>
@@ -79,15 +110,18 @@ const renderCountries = (countriesToShow) => {
         const favButton = countryCard.querySelector('.favorite-button');
         favButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            toggleFavorite(country);
-            favButton.classList.toggle('active');
-            favButton.textContent = favButton.classList.contains('active') 
-                ? '★ Added to Favorites' 
-                : '☆ Add to Favorites';
+            const success = toggleFavorite(country);
+            if (success) {
+                favButton.classList.toggle('active');
+                favButton.textContent = favButton.classList.contains('active') 
+                    ? '★ Added to Favorites' 
+                    : '☆ Add to Favorites';
+            }
         });
 
         countryCard.addEventListener('click', (e) => {
             if (!e.target.closest('.favorite-button')) {
+                saveSearchState();
                 navigateToDetails(country.name.common);
             }
         });
@@ -100,8 +134,9 @@ const renderCountries = (countriesToShow) => {
 
 // Pagination helpers
 const getPaginatedCountries = () => {
+    const filteredCountries = getFilteredCountries();
     const start = (currentPage - 1) * pageSize;
-    return getFilteredCountries().slice(start, start + pageSize);
+    return filteredCountries.slice(start, start + pageSize);
 };
 
 const updateShowMoreButton = () => {
@@ -120,7 +155,7 @@ const toggleFavorite = (country) => {
     if (index === -1) {
         if (favorites.length >= 5) {
             alert('You can only have up to 5 favorite countries.');
-            return;
+            return false;
         }
         favorites.push(country);
     } else {
@@ -129,72 +164,10 @@ const toggleFavorite = (country) => {
     
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     updateFavoritesList();
+    return true;
 };
 
-const updateFavoritesList = () => {
-    if (!elements.favoritesList) return;
-
-    if (favorites.length === 0) {
-        elements.favoritesList.innerHTML = `
-            <div class="no-favorites">
-                <p>No favorite countries yet</p>
-                <p>Click the star icon to add countries to your favorites</p>
-            </div>`;
-        return;
-    }
-
-    const favoritesHTML = favorites.map(country => `
-        <div class="favorite-item" onclick="navigateToDetails('${country.name.common}')">
-            <img src="${country.flags.png}" alt="${country.name.common} flag" class="favorite-flag">
-            <div class="favorite-info">
-                <p class="favorite-name">${country.name.common}</p>
-                <p class="favorite-region">${country.region}</p>
-            </div>
-            <button class="remove-favorite" onclick="event.stopPropagation(); removeFavorite('${country.name.common}')">×</button>
-        </div>
-    `).join('');
-
-    elements.favoritesList.innerHTML = favoritesHTML;
-};
-
-const removeFavorite = (countryName) => {
-    favorites = favorites.filter(fav => fav.name.common !== countryName);
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-    updateFavoritesList();
-    renderCountries(getPaginatedCountries());
-};
-
-// Filter population
-const populateLanguageFilter = () => {
-    const languages = new Set(
-        countries.flatMap(country => 
-            country.languages ? Object.values(country.languages) : []
-        )
-    );
-
-    elements.languageFilter.innerHTML = `
-        <option value="">All Languages</option>
-        ${[...languages].sort().map(lang => 
-            `<option value="${lang}">${lang}</option>`
-        ).join('')}`;
-};
-
-const populateRegionFilter = () => {
-    const regions = new Set(countries.map(country => country.region));
-
-    elements.regionFilter.innerHTML = `
-        <option value="">All Regions</option>
-        ${[...regions].sort().map(region => 
-            `<option value="${region}">${region}</option>`
-        ).join('')}`;
-};
-
-// Navigation
-const navigateToDetails = (countryName) => {
-    window.location.href = `details.html?country=${encodeURIComponent(countryName)}`;
-};
-
-// Filtering and searching
+// Filter and search functionality
 const getFilteredCountries = () => {
     const searchQuery = elements.searchInput.value.toLowerCase();
     const regionValue = elements.regionFilter.value;
@@ -245,14 +218,14 @@ const searchCountries = (query) => {
             return;
         }
 
-        const filteredResults = countries.filter(country =>
+        const matchingCountries = countries.filter(country =>
             country.name.common.toLowerCase().includes(query.toLowerCase())
         );
-        showSuggestions(filteredResults);
+        showSuggestions(matchingCountries, query);
     }, 300);
 };
 
-const showSuggestions = (results) => {
+const showSuggestions = (results, query) => {
     if (!elements.searchSuggestions) return;
 
     if (results.length === 0) {
@@ -267,10 +240,11 @@ const showSuggestions = (results) => {
         </div>
     `).join('');
 
-    if (results.length > 5) {
+    // Always show View All if there are any results
+    if (results.length > 0) {
         suggestionsHTML += `
-            <div class="suggestion-item view-all" onclick="viewAllResults('${elements.searchInput.value}')">
-                View all results
+            <div class="suggestion-item view-all" onclick="viewAllResults('${query}')">
+                View all ${results.length} results
             </div>`;
     }
 
@@ -279,24 +253,17 @@ const showSuggestions = (results) => {
 };
 
 const viewAllResults = (query) => {
-    const matchingCountries = countries.filter(country =>
-        country.name.common.toLowerCase().includes(query.toLowerCase())
-    );
-    renderCountries(matchingCountries);
+    elements.searchInput.value = query;
+    currentPage = 1;
+    renderCountries(getPaginatedCountries());
     elements.searchSuggestions.style.display = 'none';
 };
 
 const selectSuggestion = (countryName) => {
     elements.searchInput.value = countryName;
     elements.searchSuggestions.style.display = 'none';
-
-    const selectedCountry = countries.find(country => 
-        country.name.common === countryName
-    );
-    
-    if (selectedCountry) {
-        renderCountries([selectedCountry]);
-    }
+    currentPage = 1;
+    renderCountries(getPaginatedCountries());
 };
 
 // Initialize event listeners
@@ -308,15 +275,11 @@ const initializeEventListeners = () => {
     }
 
     if (elements.regionFilter) {
-        elements.regionFilter.addEventListener('change', () => 
-            handleFilterChange('region')
-        );
+        elements.regionFilter.addEventListener('change', () => handleFilterChange('region'));
     }
 
     if (elements.languageFilter) {
-        elements.languageFilter.addEventListener('change', () => 
-            handleFilterChange('language')
-        );
+        elements.languageFilter.addEventListener('change', () => handleFilterChange('language'));
     }
 
     if (elements.showMore) {
@@ -334,8 +297,75 @@ const initializeEventListeners = () => {
     });
 };
 
+// Update favorites list
+const updateFavoritesList = () => {
+    if (!elements.favoritesList) return;
+
+    if (favorites.length === 0) {
+        elements.favoritesList.innerHTML = `
+            <div class="no-favorites">
+                <p>No favorite countries yet</p>
+                <p>Click the star icon to add countries to your favorites</p>
+            </div>`;
+        return;
+    }
+
+    const favoritesHTML = favorites.map(country => `
+        <div class="favorite-item" onclick="navigateToDetails('${country.name.common}')">
+            <img src="${country.flags.png}" alt="${country.name.common} flag" class="favorite-flag">
+            <div class="favorite-info">
+                <p class="favorite-name">${country.name.common}</p>
+                <p class="favorite-region">${country.region}</p>
+            </div>
+            <button class="remove-favorite" onclick="event.stopPropagation(); removeFavorite('${country.name.common}')">×</button>
+        </div>
+    `).join('');
+
+    elements.favoritesList.innerHTML = favoritesHTML;
+};
+
+// Remove from favorites
+const removeFavorite = (countryName) => {
+    favorites = favorites.filter(fav => fav.name.common !== countryName);
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    updateFavoritesList();
+    renderCountries(getPaginatedCountries());
+};
+
+// Populate language filter
+const populateLanguageFilter = () => {
+    const languages = new Set(
+        countries.flatMap(country => 
+            country.languages ? Object.values(country.languages) : []
+        )
+    );
+
+    elements.languageFilter.innerHTML = `
+        <option value="">All Languages</option>
+        ${[...languages].sort().map(lang => 
+            `<option value="${lang}">${lang}</option>`
+        ).join('')}`;
+};
+
+// Populate region filter
+const populateRegionFilter = () => {
+    const regions = new Set(countries.map(country => country.region));
+
+    elements.regionFilter.innerHTML = `
+        <option value="">All Regions</option>
+        ${[...regions].sort().map(region => 
+            `<option value="${region}">${region}</option>`
+        ).join('')}`;
+};
+
+// Navigation
+const navigateToDetails = (countryName) => {
+    window.location.href = `details.html?country=${encodeURIComponent(countryName)}`;
+};
+
 // Initialize application
-document.addEventListener('DOMContentLoaded', () => {
-    fetchCountries();
+document.addEventListener('DOMContentLoaded', async () => {
+    await fetchCountries();
     initializeEventListeners();
+    restoreSearchState(); // Move after fetchCountries to ensure data is loaded
 });
